@@ -5,10 +5,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractAu
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
-public final class CustomConfigurer<H extends HttpSecurityBuilder<H>> extends
-        AbstractAuthenticationFilterConfigurer<H, CustomConfigurer<H>, CustomAuthenticationFilter> {
+public final class CustomLoginConfigurer<H extends HttpSecurityBuilder<H>> extends
+        AbstractAuthenticationFilterConfigurer<H, CustomLoginConfigurer<H>, CustomAuthenticationFilter> {
 
-    public CustomConfigurer() {
+    public CustomLoginConfigurer() {
         super(new CustomAuthenticationFilter(), null);
         usernameParameter("username");
         passwordParameter("password");
@@ -19,12 +19,12 @@ public final class CustomConfigurer<H extends HttpSecurityBuilder<H>> extends
         return new AntPathRequestMatcher(loginProcessingUrl, "POST");
     }
 
-    public CustomConfigurer<H> usernameParameter(String usernameParameter) {
+    public CustomLoginConfigurer<H> usernameParameter(String usernameParameter) {
         getAuthenticationFilter().setUsernameParameter(usernameParameter);
         return this;
     }
 
-    public CustomConfigurer<H> passwordParameter(String passwordParameter) {
+    public CustomLoginConfigurer<H> passwordParameter(String passwordParameter) {
         getAuthenticationFilter().setPasswordParameter(passwordParameter);
         return this;
     }
