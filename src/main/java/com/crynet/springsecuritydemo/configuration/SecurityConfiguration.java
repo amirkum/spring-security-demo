@@ -3,6 +3,7 @@ package com.crynet.springsecuritydemo.configuration;
 import com.crynet.springsecuritydemo.security.CustomLoginConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,14 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @EnableWebSecurity(debug = true)
 public class SecurityConfiguration {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    @Value("${server.servlet.session.cookie.name}")
+    private String sessionCookieName;
+
+    public SecurityConfiguration(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
     SecurityFilterChain customSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -26,15 +34,15 @@ public class SecurityConfiguration {
         http.apply(new CustomLoginConfigurer<>())
                 .loginProcessingUrl("/api/login")
                 .successHandler((request, response, authentication) -> {
-                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.setStatus(HttpStatus.OK.value());
                     response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     response.getWriter().print(objectMapper.writeValueAsString(authentication.getPrincipal()));
                 })
-                .failureHandler((request, response, exception) -> response.setStatus(HttpServletResponse.SC_BAD_REQUEST));
+                .failureHandler((request, response, exception) -> response.setStatus(HttpStatus.BAD_REQUEST.value()));
         http.logout()
                 .logoutUrl("/api/logout")
-                .logoutSuccessHandler((request, response, authentication) -> response.setStatus(HttpServletResponse.SC_OK))
-                .deleteCookies("QBASIC_SESSION_ID");
+                .logoutSuccessHandler((request, response, authentication) -> response.setStatus(HttpStatus.OK.value()))
+                .deleteCookies(sessionCookieName);
         http.exceptionHandling()
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
         return http.build();
