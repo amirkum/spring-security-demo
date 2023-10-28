@@ -2,7 +2,6 @@ package com.crynet.springsecuritydemo.configuration;
 
 import com.crynet.springsecuritydemo.security.CustomLoginConfigurer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +29,10 @@ public class SecurityConfiguration {
     @Bean
     SecurityFilterChain customSecurityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable);
-        http.authorizeHttpRequests((authorize) -> authorize.anyRequest().authenticated());
+
+        http.authorizeHttpRequests((requests) -> requests
+                .anyRequest().authenticated());
+
         http.apply(new CustomLoginConfigurer<>())
                 .loginProcessingUrl("/api/login")
                 .successHandler((request, response, authentication) -> {
@@ -39,12 +41,15 @@ public class SecurityConfiguration {
                     response.getWriter().print(objectMapper.writeValueAsString(authentication.getPrincipal()));
                 })
                 .failureHandler((request, response, exception) -> response.setStatus(HttpStatus.BAD_REQUEST.value()));
-        http.logout()
+
+        http.logout((logout) -> logout
                 .logoutUrl("/api/logout")
                 .logoutSuccessHandler((request, response, authentication) -> response.setStatus(HttpStatus.OK.value()))
-                .deleteCookies(sessionCookieName);
-        http.exceptionHandling()
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED));
+                .deleteCookies(sessionCookieName));
+
+        http.exceptionHandling((handling) -> handling
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
+
         return http.build();
     }
 
